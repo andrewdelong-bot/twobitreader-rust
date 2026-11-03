@@ -31,13 +31,13 @@ Python.
 
 ## [0.2.0] - 2026-10-01
 
-`twobitreader` is now available from Python as **`twobitreader_rs`**, built with PyO3 and
+`twobitreader` is now available from Python as **`twobitreader-rs`**, built with PyO3 and
 published as a wheel. The Python API mirrors the Rust one, with speed close to pure Rust.
 
 ### Added
 
-- **Python bindings** (`twobitreader_rs`), exposing `TwobitReader` and `reverse_complement`.
-  Available for CPython 3.9+ on Linux, macOS and Windows.
+- **Python bindings** (`import twobitreader_rs`), exposing `TwobitReader` and
+  `reverse_complement`. Available for CPython 3.9+ on Linux, macOS and Windows.
 - **Free-threaded CPython support.** The extension is marked `gil_used = false` and the
   reader is immutable and shareable. A thread pool over batches scales across cores on a
   free-threaded build.
