@@ -29,6 +29,13 @@ fn test_malformed_header_error() {
 }
 
 #[test]
+fn test_single_record_offset() {
+    // The only record's data starts immediately after the index, so its offset equals the end of the index.
+    let tbr = TwobitReader::open("tests/assets/single-record.2bit").unwrap();
+    assert_eq!(tbr.get("chr1", 0, 4), "ACGT");
+}
+
+#[test]
 #[should_panic(expected = "num_blocks too large")]
 fn test_truncated_blocks_error() {
     // File block indices were truncated by end of file.

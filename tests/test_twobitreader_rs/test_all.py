@@ -65,6 +65,12 @@ def test_missing_file_error():
         TwobitReader.open(str(ASSETS / "no-such-file.2bit"))
 
 
+def test_single_record_offset():
+    # The only record's data starts immediately after the index, so its offset equals the end of the index.
+    tbr = TwobitReader.open(str(ASSETS / "single-record.2bit"))
+    assert tbr.get("chr1", 0, 4) == "ACGT"
+
+
 def test_truncated_blocks_error():
     # File block indices were truncated by end of file.
     tbr = TwobitReader.open_masked(str(ASSETS / "malformed-truncated-blocks.2bit"))
