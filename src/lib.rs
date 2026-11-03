@@ -146,9 +146,12 @@
 //!
 //! # Use of AI
 //!
-//! Claude Code: generated the OS-specific prefetch loops; improved handling of corrupt or malicious files;
-//! documented the Python bindings and mirrored their tests and benchmark; improved error checking and
-//! propagation to Python more broadly; and generated the CI configurations.
+//! The Rust library was written primarily by hand.
+//!
+//! Claude was used to generated the OS-specific prefetch loops, to improve handling of
+//! corrupt or malicious files, to document the Python bindings and mirrored their tests
+//! and benchmark, to improved error checking and propagation to Python more broadly,
+//! and generated the CI configurations.
 
 // Standard library
 use std::borrow::Borrow;
