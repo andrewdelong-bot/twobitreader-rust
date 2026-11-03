@@ -910,7 +910,7 @@ fn read_seqs_endian<B: ByteOrder>(mmap: &Mmap) -> io::Result<Vec<TwobitSequence>
         // Get the offset of the data arrays for this sequence
         let data_offset = cursor.read_u32::<B>()? as u64;
         let curr_offset = cursor.position();
-        if data_offset <= curr_offset {
+        if data_offset < curr_offset {
             return Err(io::Error::new(InvalidData, "invalid data offset; file may be malformed."));
         }
 

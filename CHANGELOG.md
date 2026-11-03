@@ -8,6 +8,12 @@ crate `twobitreader` and the Python package `twobitreader_rs` share a version nu
 
 ## [Unreleased]
 
+### Fixed
+
+- `TwobitReader::open` no longer rejects a valid 2bit file that contains exactly one sequence
+  record. The record's data starts immediately after the index, so its offset equals the end
+  of the index, which the offset check wrongly treated as invalid.
+
 ## [0.2.2] - 2026-10-01
 
 ### Added
