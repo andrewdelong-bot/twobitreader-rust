@@ -33,3 +33,14 @@ jobs:
       - run: maturin build --release --out dist
       - run: pip install --no-index --find-links dist twobitreader_rs
       - run: pytest tests/test_twobitreader_rs -q
+
+  # README.md is generated from the crate docs in src/lib.rs; fail if it is out of date.
+  # To fix: run `cargo rdme` and commit the result.
+  readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@1.98
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install cargo-rdme --locked
+      - run: cargo rdme --check
