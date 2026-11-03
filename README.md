@@ -89,8 +89,8 @@ Speed depends on parallelism and page cache (hot vs cold):
 - **cold** runs represent a first run of a genomics pipeline, bound by disk speed;
 - **prefetch** runs are cold but with a `prefetch` call preceding extraction.
 
-The table below shows running times in milliseconds. Experimental details are `BENCH.md`.
-This crate provides *twobitreader* (pure rust) and *twobitreader_rs* (python wrapper).
+The table below shows running times in milliseconds. Experimental details are in `BENCH.md`.
+The first two rows are this crate (*twobitreader*) and its Python wrapper (*twobitreader_rs*).
 
 | EXONS | 1-thread / hot | 1-thread / cold | 1-thread / prefetch | 16-thread / hot | 16-thread / cold |
 |---|---:|---:|---:|---:|---:|

@@ -117,13 +117,13 @@
 //! - **cold** runs represent a first run of a genomics pipeline, bound by disk speed;
 //! - **prefetch** runs are cold but with a `prefetch` call preceding extraction.
 //!
-//! The table below shows running times in milliseconds. Experimental details are `BENCH.md`.
-//! This crate provides *twobitreader* (pure rust) and *twobitreader_rs* (python wrapper).
+//! The table below shows running times in milliseconds. Experimental details are in `BENCH.md`.
+//! This crate provides the *twobitreader* and *twobitreader-rs* rows.
 //!
 //! | EXONS | 1-thread / hot | 1-thread / cold | 1-thread / prefetch | 16-thread / hot | 16-thread / cold |
 //! |---|---:|---:|---:|---:|---:|
 //! | **twobitreader** (rs)        | 90    | 1,700  | 180 | 10    | 190   |
-//! | **twobitreader_rs** (rs, py) | 100   | 1,900  | 190 | *27   | *210  |
+//! | **twobitreader-rs** (rs, py) | 100   | 1,900  | 190 | *27   | *210  |
 //! | **py2bit** (c, py)           | 220   | 2,800  | n/a | n/a   | n/a   |
 //! | **GenomeKit** (cpp, py)      | 340   | 2,400  | n/a | n/a   | n/a   |
 //! | **twobit** (rs)              | 390   | 3,500  | n/a | n/a   | n/a   |
@@ -134,7 +134,7 @@
 //! | TRANSCRIPTS | 1-thread / hot | 1-thread / cold | 1-thread / prefetch | 16-thread / hot | 16-thread / cold |
 //! |---|---:|---:|---:|---:|---:|
 //! | **twobitreader** (rs)        | 140    | 1,700  | 230 | 13    | 190   |
-//! | **twobitreader_rs** (rs, py) | 180    | 2,100  | 310 | *27   | *220  |
+//! | **twobitreader-rs** (rs, py) | 180    | 2,100  | 310 | *27   | *220  |
 //! | **py2bit** (c, py)           | 490    | 3,600  | n/a | n/a   | n/a   |
 //! | **GenomeKit** (cpp, py)      | 720    | 2,900  | n/a | n/a   | n/a   |
 //! | **twobit** (rs)              | 930    | 1,900  | n/a | n/a   | n/a   |
