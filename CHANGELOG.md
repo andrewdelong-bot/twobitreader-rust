@@ -8,11 +8,20 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-11-03
+
 ### Fixed
 
 - `TwobitReader::open` no longer rejects a valid 2bit file that contains exactly one sequence
   record. The record's data starts immediately after the index, so its offset equals the end
   of the index, which the offset check wrongly treated as invalid.
+- Missing word and a misplaced sentence in the Benchmarks section of the documentation.
+
+### Changed
+
+- README.md is now generated from the crate documentation with `cargo rdme`, and CI checks
+  that it is up to date. The badges moved from the crate documentation into README.md, so
+  they no longer appear on docs.rs.
 
 ## [0.2.2] - 2026-10-01
 
@@ -77,7 +86,8 @@ extraction with `get_batch`, exon concatenation with `concat`, reverse complemen
 `prefetch` for cold files. Sequence records are parsed lazily so that opening a large file
 stays cheap. No git tag was made for this version.
 
-[Unreleased]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.1.1...v0.2.0
