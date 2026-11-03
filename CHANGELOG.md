@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The Rust
-crate `twobitreader` and the Python package `twobitreader_rs` share a version number.
+crate `twobitreader` and the Python package `twobitreader-rs` share a version number.
 
 ## [Unreleased]
 
@@ -16,7 +16,7 @@ crate `twobitreader` and the Python package `twobitreader_rs` share a version nu
 
 ## [0.2.1] - 2026-10-01
 
-First release of `twobitreader_rs` on PyPI. There are no library changes; 0.2.0 reached
+First release of `twobitreader-rs` on PyPI. There are no library changes; 0.2.0 reached
 crates.io before the wheel-building workflow was in place, so it was never published for
 Python.
 
