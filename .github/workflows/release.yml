@@ -32,12 +32,12 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --interpreter 3.9 3.10 3.11 3.12 3.13 3.14 3.14t
+          args: --release --out dist --interpreter 3.10 3.11 3.12 3.13 3.14 3.14t
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
       - name: Upload wheels
@@ -59,12 +59,12 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --interpreter 3.9 3.10 3.11 3.12 3.13 3.14 3.14t
+          args: --release --out dist --interpreter 3.10 3.11 3.12 3.13 3.14 3.14t
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: musllinux_1_2
       - name: Upload wheels
@@ -80,7 +80,7 @@ jobs:
         platform:
           - runner: windows-latest
             target: x64
-            pythons: "3.9\n3.10\n3.11\n3.12\n3.13\n3.14"
+            pythons: "3.10\n3.11\n3.12\n3.13\n3.14"
             python_arch: x64
             suffix: ""
           - runner: windows-latest
@@ -124,8 +124,7 @@ jobs:
         platform:
           - runner: macos-15-intel
             target: x86_64
-            # setup-python has no darwin-arm64 build before 3.10, so 3.9 is Intel only.
-            pythons: "3.9\n3.10\n3.11\n3.12\n3.13\n3.14"
+            pythons: "3.10\n3.11\n3.12\n3.13\n3.14"
             suffix: ""
           - runner: macos-15-intel
             target: x86_64

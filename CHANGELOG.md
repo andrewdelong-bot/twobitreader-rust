@@ -15,6 +15,10 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
   `-threads=N` option extracts a `-bed` or `-seqList` file in parallel, with output in input order.
 - `TwobitReader::try_get_into`, a version of `get_into` that returns an error instead of panicking.
 
+### Changed
+
+- Dropped support for Python 3.9, which is end-of-life. The Python package now requires CPython 3.10 or newer.
+
 ## [0.2.3] - 2026-11-03
 
 ### Fixed
