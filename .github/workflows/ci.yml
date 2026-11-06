@@ -17,10 +17,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.98
         with:
           components: clippy, rustfmt
-      - run: cargo generate-lockfile
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --locked --verbose
-      - run: cargo test --locked --verbose --no-fail-fast
+      - run: cargo test --locked --features cli --verbose --no-fail-fast
       - run: cargo build --locked --verbose --release
       - run: cargo bench --locked --verbose --no-run
       - run: cargo clippy --locked --all-features --no-deps

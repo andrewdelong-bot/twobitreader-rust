@@ -41,4 +41,5 @@ tests = [
 
 [tool.maturin]
 features = ["python"]
+bindings = "pyo3"
 module-name = "twobitreader_rs"

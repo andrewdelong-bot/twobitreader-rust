@@ -104,3 +104,23 @@ Parallel experiments were the same, but used `multiprocessing.Pool` to implement
 * The parallel timings say "n/a" because GenomeKit is not yet compatible
   with free-threaded Python, and the pickling overhead of `multiprocessing.Pool`
   negates any performance benefit of parallelism this way.
+
+### Extra details for the command-line benchmark
+
+See `benches/bench_cli/bench_cli.py`, which compares the `twobitreader` command
+(`cargo build --release --features cli`) with `twoBitToFa` 4 (bioconda `ucsc-twobittofa`).
+
+* Each timing is a command-line run: start-up, opening, parsing, decoding, and FASTA formatting.
+  Not timed are decompression (uses `.bed`) and potential file writes (output to `/dev/null`).
+  Both tools run with `-noMask`, and their outputs are checked to be identical.
+* *exons* is a BED4 file (all `+` strand), 133,388 lines. *transcripts* is a BED12 file with one line per
+  transcript (29,211 lines), whose blocks are the exons; both tools join blocks and reverse-complement `-` strand.
+* Both variants start from the one whole BED file and write one output in input order (to `/dev/null`).
+  *basic* is one process. *parallel* is one `twobitreader -threads=16` process, which splits the BED file
+  itself. twoBitToFa has no parallel option, so its *parallel* run is a shell pipeline, all of it timed: `split`
+  the BED file into 8 equal chunks of lines (8 was its fastest count here), `xargs -P 8` to run a process per
+  chunk, each writing a temporary file, then `cat` the files in order and delete them. Output is checked to
+  equal a plain run's.
+* One equal chunk per process was the fastest split for twoBitToFa; many small chunks pay process start-up
+  each time, and few large ones leave processes idle.
+* Cold runs use `fcntl(F_NOCACHE)` as above, with 5 iterations instead of 10.

@@ -5,11 +5,11 @@
 //! This crate provides fast DNA sequence extraction from 2bit files, a
 //! [standard format](http://genome.ucsc.edu/FAQ/FAQformat.html#format7) in bioinformatics.
 //!
-//! The motivation for `twobitreader` is speed; see benchmarks below.
-//! It is also available as a Python package named `twobitreader-rs`.
-//!
 //! The focus is raw reading from 2bit, but fast concatenation and reverse-complement methods
 //! are also provided to make higher-level use cases easier.
+//!
+//! The crate is also available as a Python package (`twobitreader-rs`) or as a
+//! terminal command replacing `twoBitToFa`.
 //!
 //! # Examples
 //!
@@ -98,6 +98,16 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 //!
+//! # Command line
+//!
+//! The `cli` feature builds a `twobitreader` command that is a drop-in replacement for the core features
+//! of UCSC `twoBitToFa`:
+//! ```console
+//! cargo install twobitreader --features cli
+//! twobitreader -seq=chr1 -start=10000 -end=10005 hg38.2bit stdout
+//! twobitreader -bed=exons.bed -threads=16 hg38.2bit out.fa
+//! ```
+//!
 //! # Benchmarks
 //!
 //! Two tasks were benchmarked:
@@ -148,10 +158,10 @@
 //!
 //! The Rust library was written primarily by hand.
 //!
-//! Claude was used to generated the OS-specific prefetch loops, to improve handling of
-//! corrupt or malicious files, to document the Python bindings and mirrored their tests
-//! and benchmark, to improved error checking and propagation to Python more broadly,
-//! and generated the CI configurations.
+//! Claude was used to write the CLI and its tests+benchmark, to generated the OS-specific
+//! prefetch loops, to improve handling of corrupt or malicious files, to document the
+//! Python bindings and to write their tests+benchmark, to improved error checking 
+//! and propagation to Python more broadly, and to generated the CI configurations.
 
 // Standard library
 use std::borrow::Borrow;
@@ -362,7 +372,40 @@ impl TwobitReader {
         // Check range before trying to do any might-panic arithmetic with (start, end)
         let seq = self.get_seq_data_by_name(name);
         check_range(seq, start, end);
+        self.get_checked_into(seq, start, end, dst);
+    }
 
+    /// A version of [`get_into`](Self::get_into) that returns an error if the sequence name was
+    /// not found or the range was invalid. The error message names the sequence.
+    ///
+    /// This function facilitates better error reporting while still using only a single hash lookup
+    /// of the sequence name.
+    ///
+    /// # Panics
+    ///
+    /// Panics only if an IO error occurs due to a malformed file.
+    pub fn try_get_into<N: AsRef<str>>(&self, name: N, start: usize, end: usize, dst: &mut String) -> io::Result<()> {
+        let name = name.as_ref();
+        let seq = self
+            .try_get_seq_data_by_name(name)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, format!("sequence {name} not found")))?;
+
+        // Check the range and return an error
+        let invalid = |msg: String| io::Error::new(io::ErrorKind::InvalidInput, format!("{name}: {msg}"));
+        if start > end {
+            return Err(invalid(format!("invalid range (start {start} > end {end})")));
+        }
+        if end > seq.dna_len {
+            return Err(invalid(format!("end ({end}) is past the end of the sequence (length {})", seq.dna_len)));
+        }
+
+        // Decode the checked range
+        self.get_checked_into(seq, start, end, dst);
+        Ok(())
+    }
+
+    // Implements get_into for a range that has already been checked.
+    fn get_checked_into(&self, seq: &TwobitSequenceData, start: usize, end: usize, dst: &mut String) {
         // Prepare an empty buffer with sufficient capacity.
         // SAFETY: clearing dst ensures that its visible portion remains valid utf8
         // until decode_and_append lengthens it.

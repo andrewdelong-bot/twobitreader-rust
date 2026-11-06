@@ -12,11 +12,11 @@
 This crate provides fast DNA sequence extraction from 2bit files, a
 [standard format](http://genome.ucsc.edu/FAQ/FAQformat.html#format7) in bioinformatics.
 
-The motivation for `twobitreader` is speed; see benchmarks below.
-It is also available as a Python package named `twobitreader-rs`.
-
 The focus is raw reading from 2bit, but fast concatenation and reverse-complement methods
 are also provided to make higher-level use cases easier.
+
+The crate is also available as a Python package (`twobitreader-rs`) or as a
+terminal command replacing `twoBitToFa`.
 
 ## Examples
 
@@ -79,6 +79,16 @@ tbr.prefetch(&exons);             // Ask the operating system to start paging th
 let seqs = tbr.get_batch(&exons); // Access the memory as it arrives.
 ```
 
+## Command line
+
+The `cli` feature builds a `twobitreader` command that is a drop-in replacement for the core features
+of UCSC `twoBitToFa`:
+```console
+cargo install twobitreader --features cli
+twobitreader -seq=chr1 -start=10000 -end=10005 hg38.2bit stdout
+twobitreader -bed=exons.bed -threads=16 hg38.2bit out.fa
+```
+
 ## Benchmarks
 
 Two tasks were benchmarked:
@@ -129,10 +139,10 @@ Entries marked * were run in free-threaded Python.
 
 The Rust library was written primarily by hand.
 
-Claude was used to generated the OS-specific prefetch loops, to improve handling of
-corrupt or malicious files, to document the Python bindings and mirrored their tests
-and benchmark, to improved error checking and propagation to Python more broadly,
-and generated the CI configurations.
+Claude was used to write the CLI and its tests+benchmark, to generated the OS-specific
+prefetch loops, to improve handling of corrupt or malicious files, to document the
+Python bindings and to write their tests+benchmark, to improved error checking 
+and propagation to Python more broadly, and to generated the CI configurations.
 
 <!-- cargo-rdme end -->
 
