@@ -19,6 +19,8 @@ Variants, each starting from the one whole BED file and producing one output, in
             (`split`), `xargs -P` runs one process per chunk, each writing a temporary file, and the
             files are concatenated in order (into /dev/null, standing in for the final .fa) and
             deleted. All of that is timed.
+  prefetch           (twobitreader only) like basic, with -prefetch.
+  parallel_prefetch  (twobitreader only) like parallel, with -prefetch.
 
 Prerequisites, from the repository root:
 
@@ -57,6 +59,8 @@ class Cache(Enum):
 class Parallel(Enum):
     BASIC = "basic"
     PARALLEL = "parallel"
+    PREFETCH = "prefetch"  # twobitreader only.
+    PARALLEL_PREFETCH = "parallel_prefetch"  # twobitreader only.
 
 
 def find_tools():
@@ -132,10 +136,11 @@ def split_command(label, tool, twobit, bed, sink="/dev/null"):
     )
 
 
-def parallel_command(label, tool, twobit, bed, sink="/dev/null"):
+def parallel_command(label, tool, twobit, bed, sink="/dev/null", prefetch=False):
     """Argv of one whole-file parallel run: -threads for the cli, split and xargs for twoBitToFa."""
     if label == "cli":
-        return tool + ["-noMask", f"-bed={bed}", f"-threads={NUM_PROCS[label]}", str(twobit), sink]
+        flags = ["-prefetch"] if prefetch else []
+        return tool + ["-noMask", f"-bed={bed}", f"-threads={NUM_PROCS[label]}", *flags, str(twobit), sink]
     return ["sh", "-c", split_command(label, tool, twobit, bed, sink)]
 
 
@@ -156,7 +161,15 @@ def verify(tools, beds, twobit):
             subprocess.run(parallel_command(label, tool, twobit, bed, str(joined)), check=True)
             if plain.read_bytes() != joined.read_bytes():
                 sys.exit(f"{label}/{workload}: parallel output differs from a plain run")
-    print("     verified: the tools agree, and parallel output equals a plain run's")
+        cli = tools["cli"]
+        for command in (
+            cli + ["-noMask", f"-bed={bed}", "-prefetch", str(twobit), str(joined)],
+            parallel_command("cli", cli, twobit, bed, str(joined), prefetch=True),
+        ):
+            subprocess.run(command, check=True)
+            if plain.read_bytes() != joined.read_bytes():
+                sys.exit(f"cli/{workload}: -prefetch output differs from a plain run")
+    print("     verified: the tools agree, and parallel and prefetch output equals a plain run's")
 
 
 def setup(cache):
@@ -188,10 +201,12 @@ def make_cold_copy(src):
 def bench_extract(label, tool, workload, cache, parallel, beds):
     """Time one run of the tool over the workload."""
     twobit, bed = setup(cache), beds[workload]
-    if parallel is Parallel.BASIC:
-        argv = tool + ["-noMask", f"-bed={bed}", str(twobit), "/dev/null"]  # Lowercase masks were not used in the other benchmarks either.
+    if parallel in (Parallel.BASIC, Parallel.PREFETCH):
+        flags = ["-prefetch"] if parallel is Parallel.PREFETCH else []
+        # Lowercase masks were not used in the other benchmarks either.
+        argv = tool + ["-noMask", f"-bed={bed}", *flags, str(twobit), "/dev/null"]
     else:
-        argv = parallel_command(label, tool, twobit, bed)
+        argv = parallel_command(label, tool, twobit, bed, prefetch=parallel is Parallel.PARALLEL_PREFETCH)
     tic = perf_counter()
     subprocess.run(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
     return perf_counter() - tic
@@ -210,6 +225,8 @@ def main():
         for workload in beds:
             for parallel in Parallel:
                 for label, tool in tools.items():
+                    if label != "cli" and parallel in (Parallel.PREFETCH, Parallel.PARALLEL_PREFETCH):
+                        continue  # twoBitToFa has no prefetch option.
                     name = f"hg38_{workload}_{cache.value}_{parallel.value}_{label}"
                     bench(name, lambda: bench_extract(label, tool, workload, cache, parallel, beds), iterations)
     COLD_PATH.unlink(missing_ok=True)
