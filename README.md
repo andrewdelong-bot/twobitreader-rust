@@ -141,7 +141,7 @@ The Rust library was written primarily by hand.
 
 Claude was used to write the CLI and its tests+benchmark, to generated the OS-specific
 prefetch loops, to improve handling of corrupt or malicious files, to document the
-Python bindings and to write their tests+benchmark, to improved error checking 
+Python bindings and to write their tests+benchmark, to improved error checking
 and propagation to Python more broadly, and to generated the CI configurations.
 
 <!-- cargo-rdme end -->
