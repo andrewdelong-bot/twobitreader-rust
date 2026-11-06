@@ -160,12 +160,11 @@
 //!
 //! Claude was used to write the CLI and its tests+benchmark, to generated the OS-specific
 //! prefetch loops, to improve handling of corrupt or malicious files, to document the
-//! Python bindings and to write their tests+benchmark, to improved error checking 
+//! Python bindings and to write their tests+benchmark, to improved error checking
 //! and propagation to Python more broadly, and to generated the CI configurations.
 
 // Standard library
 use std::borrow::Borrow;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Cursor, ErrorKind::InvalidData, Read};
 use std::iter::zip;
@@ -180,6 +179,8 @@ mod decode;
 use decode::{NUCS_PER_U8, decode};
 mod prefetch;
 use prefetch::PrefetchBatcher;
+mod seq_index_map;
+use seq_index_map::SeqIndexMap;
 #[cfg(feature = "python")]
 mod python;
 
@@ -204,12 +205,12 @@ enum Endianness {
 ///
 #[derive(Debug)]
 pub struct TwobitReader {
-    file: File,                          // Open 2bit file; kept for issuing prefetch hints.
-    mmap: Mmap,                          // Memory map of entire 2bit file.
-    masked: bool,                        // Whether to apply the lowercase mask.
-    endianness: Endianness,              // Whether the 2bit file is big-endian.
-    seqs: Vec<TwobitSequence>,           // Sequence data, in same order as in the file.
-    seq_by_name: HashMap<String, usize>, // Lookup sequence index (seqs[index]) by name.
+    file: File,                // Open 2bit file; kept for issuing prefetch hints.
+    mmap: Mmap,                // Memory map of entire 2bit file.
+    masked: bool,              // Whether to apply the lowercase mask.
+    endianness: Endianness,    // Whether the 2bit file is big-endian.
+    seqs: Vec<TwobitSequence>, // Sequence data, in same order as in the file.
+    seq_by_name: SeqIndexMap,  // Lookup sequence index (seqs[index]) by name.
 }
 
 /// A specific sequence record within the 2bit file.
@@ -289,7 +290,7 @@ impl TwobitReader {
         let seqs = read_seqs(&mmap, endianness)?;
 
         // Allow fast lookup of sequences by name
-        let seq_by_name = HashMap::from_iter(seqs.iter().enumerate().map(|(i, seq)| (seq.name.clone(), i)));
+        let seq_by_name = SeqIndexMap::from_iter(seqs.iter().enumerate().map(|(i, seq)| (seq.name.clone(), i)));
         if seq_by_name.len() != seqs.len() {
             return Err(io::Error::new(InvalidData, "duplicate sequence name detected."));
         }
