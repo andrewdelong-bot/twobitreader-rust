@@ -120,12 +120,13 @@
 //! - **prefetch** runs are cold but with a `prefetch` call preceding extraction.
 //!
 //! The table below shows running times in milliseconds. Experimental details are in `BENCH.md`.
-//! This crate provides the *twobitreader* and *twobitreader-rs* rows.
+//! This crate provides the top three rows: *twobitreader*, *twobitreader-rs*, *twobitreader-cli*.
 //!
 //! | EXONS | 1-thread / hot | 1-thread / cold | 1-thread / prefetch | 16-thread / hot | 16-thread / cold |
 //! |---|---:|---:|---:|---:|---:|
 //! | **twobitreader** (rs)        | 90    | 1,700  | 180 | 10    | 190   |
 //! | **twobitreader-rs** (rs, py) | 100   | 1,900  | 190 | *27   | *210  |
+//! | **twobitreader-cli** (rs)    | 150   | 2,200  | 280 | 55    | 260   |
 //! | **py2bit** (c, py)           | 220   | 2,800  | n/a | n/a   | n/a   |
 //! | **GenomeKit** (cpp, py)      | 340   | 2,400  | n/a | n/a   | n/a   |
 //! | **twobit** (rs)              | 390   | 3,500  | n/a | n/a   | n/a   |
@@ -137,6 +138,7 @@
 //! |---|---:|---:|---:|---:|---:|
 //! | **twobitreader** (rs)        | 140    | 1,700  | 230 | 13    | 190   |
 //! | **twobitreader-rs** (rs, py) | 180    | 2,100  | 310 | *27   | *220  |
+//! | **twobitreader-cli** (rs)    | 250    | 2,300  | 340 | 75    | 300   |
 //! | **py2bit** (c, py)           | 490    | 3,600  | n/a | n/a   | n/a   |
 //! | **GenomeKit** (cpp, py)      | 720    | 2,900  | n/a | n/a   | n/a   |
 //! | **twobit** (rs)              | 930    | 1,900  | n/a | n/a   | n/a   |
