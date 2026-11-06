@@ -12,7 +12,9 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
 
 - `twobitreader` command-line tool, behind the `cli` feature, a drop-in replacement for the core
   features of UCSC `twoBitToFa` that is several times faster on BED extraction (see `BENCH.md`). Its
-  `-threads=N` option extracts a `-bed` or `-seqList` file in parallel, with output in input order.
+  `-threads=N` option extracts a `-bed` or `-seqList` file in parallel, with output in input order,
+  and its `-prefetch` option asks the operating system to page in the needed data first, which
+  greatly speeds up a 2bit file that is not already in the page cache.
 - `TwobitReader::try_get_into`, a version of `get_into` that returns an error instead of panicking.
 
 ### Changed

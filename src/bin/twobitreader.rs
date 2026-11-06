@@ -33,6 +33,9 @@ options:
    -bedPos         With -bed, name each record chrom:start-end instead of the BED name.
    -threads=N      With -bed or -seqList, extract with N threads (0 = one per core). The
                    whole list is read into memory first. Output order is unchanged.
+   -prefetch       With -bed or -seqList, first ask the operating system to page in all the
+                   sequence data the list needs. Speeds up a 2bit file that is not in the
+                   page cache; slightly slows one that is. The whole list is read first.
    -h, -help       Show this message.
 Sequences are written 50 bases per line. A record extracted with a range
 is named name:start-end.
@@ -48,6 +51,7 @@ struct Options {
     bed_pos: bool,
     no_mask: bool,
     threads: Option<usize>, // None = sequential and streaming; Some(0) = one per core.
+    prefetch: bool,
 }
 
 fn main() -> ExitCode {
@@ -108,6 +112,7 @@ fn parse_args() -> io::Result<Option<(Options, String, String)>> {
             "bedPos" => opts.bed_pos = true,
             "noMask" => opts.no_mask = true,
             "threads" => opts.threads = Some(num(value)?),
+            "prefetch" => opts.prefetch = true,
             "bpt" | "udcDir" => return usage_error(&format!("option -{key} is not supported")),
             _ => return usage_error(&format!("unrecognized option -{key}")),
         }
@@ -131,6 +136,9 @@ fn parse_args() -> io::Result<Option<(Options, String, String)>> {
     }
     if opts.threads.is_some() && opts.bed.is_none() && opts.seq_list.is_none() {
         return usage_error("-threads requires -bed or -seqList");
+    }
+    if opts.prefetch && opts.bed.is_none() && opts.seq_list.is_none() {
+        return usage_error("-prefetch requires -bed or -seqList");
     }
     Ok(Some((opts, input, output)))
 }
@@ -161,6 +169,9 @@ fn run() -> io::Result<()> {
 
     let mut seq = String::new(); // Reused for every record, to avoid reallocating.
     if let Some(path) = &opts.bed {
+        if opts.prefetch {
+            prefetch_list(&tbr, path, true)?;
+        }
         let process = |line: &str, seq: &mut String, out: &mut Vec<u8>| {
             if is_skippable(line, true) {
                 return Ok(());
@@ -169,6 +180,9 @@ fn run() -> io::Result<()> {
         };
         run_lines(path, opts.threads, &process, &mut out)?;
     } else if let Some(path) = &opts.seq_list {
+        if opts.prefetch {
+            prefetch_list(&tbr, path, false)?;
+        }
         let process = |line: &str, seq: &mut String, out: &mut Vec<u8>| {
             if is_skippable(line, false) {
                 return Ok(());
@@ -185,6 +199,32 @@ fn run() -> io::Result<()> {
         }
     }
     out.flush()
+}
+
+// Asks the operating system to page in the sequence data that every line of the BED or seqList file will read.
+// Lines that are malformed or out of range are left for the extraction to report.
+fn prefetch_list(tbr: &TwobitReader, path: &str, bed: bool) -> io::Result<()> {
+    let text = std::fs::read_to_string(path).map_err(|e| io::Error::new(e.kind(), format!("{path}: {e}")))?;
+    let mut ranges = Vec::new();
+    for line in text.lines().filter(|line| !is_skippable(line, bed)) {
+        let (name, range) = if bed {
+            let mut cols = line.split_ascii_whitespace();
+            let (Some(chrom), Some(start), Some(end)) = (cols.next(), cols.next(), cols.next()) else { continue };
+            let (Ok(start), Ok(end)) = (start.parse(), end.parse()) else { continue };
+            (chrom, Some((start, end)))
+        } else {
+            parse_spec(line.trim())
+        };
+        if tbr.contains_name(name) {
+            let len = tbr.seq_len(name);
+            let (start, end) = range.unwrap_or((0, len));
+            if start <= end && end <= len {
+                ranges.push((name, start, end));
+            }
+        }
+    }
+    tbr.prefetch(&ranges);
+    Ok(())
 }
 
 // Processes one input line, writing any output. The String is a buffer to reuse between lines.

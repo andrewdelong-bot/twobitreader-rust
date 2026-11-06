@@ -121,6 +121,8 @@ See `benches/bench_cli/bench_cli.py`, which compares the `twobitreader` command
   the BED file into 8 equal chunks of lines (8 was its fastest count here), `xargs -P 8` to run a process per
   chunk, each writing a temporary file, then `cat` the files in order and delete them. Output is checked to
   equal a plain run's.
+* *prefetch* and *parallel_prefetch* (`twobitreader` only) are *basic* and *parallel* with `-prefetch`, which
+  reads the whole BED file first and calls `TwobitReader::prefetch` on its ranges. It is meant for cold files.
 * One equal chunk per process was the fastest split for twoBitToFa; many small chunks pay process start-up
   each time, and few large ones leave processes idle.
 * Cold runs use `fcntl(F_NOCACHE)` as above, with 5 iterations instead of 10.

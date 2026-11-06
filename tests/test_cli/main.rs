@@ -176,6 +176,38 @@ fn threads_report_errors() {
     assert!(fails(&["-threads=x", "-bed=tests/assets/tiny.fasta"]));
 }
 
+#[test]
+fn prefetch_does_not_change_output() {
+    // Mixed BED formats, alone and with threads.
+    let bed = format!("-bed={}", tmp("big.bed", &big_bed()));
+    let expected = fasta(&[&bed]);
+    assert_eq!(fasta(&[&bed, "-prefetch"]), expected);
+    assert_eq!(fasta(&[&bed, "-prefetch", "-threads=3"]), expected);
+    for file in ["tiny-bed3-bed4", "tiny-bed12", "tiny-strand", "tiny-mixed"] {
+        let bed = format!("-bed=tests/assets/{file}.bed");
+        assert_eq!(fasta(&[&bed, "-prefetch"]), fasta(&[&bed]), "{file}");
+    }
+    // Specs with and without a range.
+    let list = format!("-seqList={}", tmp("prefetch-list.txt", "seq_abc\nseq_xy:1-40\n# comment\n\nseq_abc:0-3\n"));
+    assert_eq!(fasta(&[&list, "-prefetch"]), fasta(&[&list]));
+}
+
+#[test]
+fn prefetch_leaves_errors_to_the_extraction() {
+    // Unknown names, bad ranges and malformed lines are skipped by the prefetch, then reported as usual.
+    for (name, line) in
+        [("name", "nope\t0\t5"), ("range", "seq_xy\t5\t999"), ("malformed", "seq_xy\tx\ty"), ("short", "seq_xy")]
+    {
+        let bed = format!("-bed={}", tmp("prefetch-bad.bed", &format!("seq_xy\t0\t5\n{line}\n")));
+        let (plain, prefetch) = (run(&[&bed, TWOBIT, "stdout"]), run(&[&bed, "-prefetch", TWOBIT, "stdout"]));
+        assert!(!plain.status.success() && !prefetch.status.success(), "{name}");
+        assert_eq!(plain.stderr, prefetch.stderr, "{name}");
+    }
+    // -prefetch needs a list of regions.
+    assert!(fails(&["-prefetch"]));
+    assert!(fails(&["-prefetch", "-seq=seq_xy"]));
+}
+
 // Differential test against UCSC twoBitToFa, skipped unless TWOBITTOFA names its executable, e.g.
 // `TWOBITTOFA=$(pixi run which twoBitToFa) cargo test --features cli` after `pixi add ucsc-twobittofa`.
 #[test]
