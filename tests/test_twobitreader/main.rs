@@ -318,3 +318,17 @@ fn test_reverse_complement() {
 fn test_reverse_complement_invalid() {
     let _ = reverse_complement("ACGTCXACGT".to_string());
 }
+
+#[test]
+fn test_try_get_into() {
+    let tbr = open_tiny();
+    let mut dst = String::new();
+    tbr.try_get_into("seq_abc", 2, 6, &mut dst).unwrap();
+    assert_eq!(dst, tbr.get("seq_abc", 2, 6));
+    tbr.try_get_into("seq_abc", 5, 5, &mut dst).unwrap(); // Empty ranges are valid.
+    assert_eq!(dst, "");
+    let mut message = |name, start, end| tbr.try_get_into(name, start, end, &mut dst).unwrap_err().to_string();
+    assert_eq!(message("nope", 0, 1), "sequence nope not found");
+    assert!(message("seq_abc", 6, 2).contains("seq_abc: invalid range (start 6 > end 2)"));
+    assert!(message("seq_abc", 0, 31).contains("seq_abc: end (31) is past the end of the sequence (length 30)"));
+}

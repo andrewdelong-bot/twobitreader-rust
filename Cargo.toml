@@ -13,6 +13,7 @@ exclude = ["tests/", "benches/", "doc/", "*.code-workspace", ".*", "BENCH.md"]
 
 [features]
 python = ["dep:pyo3", "dep:scopeguard"]
+cli = []
 
 [dependencies]
 byteorder = "1"
@@ -37,6 +38,10 @@ rayon = "1"
 # Cold benchmarks use fcntl(F_NOCACHE) to write an uncached copy of the 2bit file.
 [target.'cfg(target_vendor = "apple")'.dev-dependencies]
 libc = "0"
+
+[[bin]]
+name = "twobitreader"
+required-features = ["cli"]
 
 [[bench]]
 name = "bench_twobitreader"
