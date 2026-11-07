@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         platform:
-          - runner: ubuntu-22.04
+          - runner: ubuntu-24.04
             target: x86_64
           # Native ARM runner, so aarch64 is built rather than emulated under QEMU.
           - runner: ubuntu-24.04-arm
@@ -51,7 +51,7 @@ jobs:
     strategy:
       matrix:
         platform:
-          - runner: ubuntu-22.04
+          - runner: ubuntu-24.04
             target: x86_64
           - runner: ubuntu-24.04-arm
             target: aarch64
@@ -194,7 +194,13 @@ jobs:
       # Requires a trusted publisher on PyPI for this repository and workflow (release.yml).
       - name: Gather distributions
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        run: mkdir dist && cp wheels-*/* dist/
+        # The free-threaded jobs also find the runner's regular interpreters, so some wheels are built twice.
+        # Keep the first copy of each filename; PyPI would reject duplicates.
+        run: |
+          mkdir dist
+          for wheel in wheels-*/*; do
+            [ -e "dist/${wheel##*/}" ] || cp "$wheel" dist/
+          done
       - name: Publish to PyPI
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: pypa/gh-action-pypi-publish@release/v1
