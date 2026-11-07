@@ -8,6 +8,8 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-06
+
 ### Added
 
 - `twobitreader` command-line tool, behind the `cli` feature, a drop-in replacement for the core
@@ -19,7 +21,11 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
 
 ### Changed
 
-- Dropped support for Python 3.9, which is end-of-life. The Python package now requires CPython 3.10 or newer.
+- Dropped support for Python 3.9, which is end-of-life.
+- Sequence names chr1-22/X/Y/M are now looked up without hashing, which is ~2.5x faster per lookup.
+  Other names fall back to a hash map as before.
+- Narrowed the version requirements of dependencies from `"0"` to the ranges that were tested, and
+  committed `Cargo.lock`.
 
 ## [0.2.3] - 2026-11-03
 
@@ -99,7 +105,8 @@ extraction with `get_batch`, exon concatenation with `concat`, reverse complemen
 `prefetch` for cold files. Sequence records are parsed lazily so that opening a large file
 stays cheap. No git tag was made for this version.
 
-[Unreleased]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.3...v0.3.0
 [0.2.3]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/andrewdelong/twobitreader-rust/compare/v0.2.0...v0.2.1
