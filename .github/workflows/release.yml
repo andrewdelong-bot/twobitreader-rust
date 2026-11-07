@@ -37,7 +37,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --interpreter 3.10 3.11 3.12 3.13 3.14 3.14t
+          args: --release --out dist --interpreter 3.10 3.11 3.12 3.13 3.14 3.15 3.14t 3.15t
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
       - name: Upload wheels
@@ -64,7 +64,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --interpreter 3.10 3.11 3.12 3.13 3.14 3.14t
+          args: --release --out dist --interpreter 3.10 3.11 3.12 3.13 3.14 3.15 3.14t 3.15t
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: musllinux_1_2
       - name: Upload wheels
@@ -80,23 +80,23 @@ jobs:
         platform:
           - runner: windows-latest
             target: x64
-            pythons: "3.10\n3.11\n3.12\n3.13\n3.14"
+            pythons: "3.10\n3.11\n3.12\n3.13\n3.14\n3.15"
             python_arch: x64
             suffix: ""
           - runner: windows-latest
             target: x64
-            pythons: "3.14t"
+            pythons: "3.14t\n3.15t"
             python_arch: x64
             suffix: "-freethreaded"
           - runner: windows-11-arm
             target: aarch64
             # setup-python publishes win-arm64 from 3.11 onwards.
-            pythons: "3.11\n3.12\n3.13\n3.14"
+            pythons: "3.11\n3.12\n3.13\n3.14\n3.15"
             python_arch: arm64
             suffix: ""
           - runner: windows-11-arm
             target: aarch64
-            pythons: "3.14t"
+            pythons: "3.14t\n3.15t"
             python_arch: arm64
             suffix: "-freethreaded"
     steps:
@@ -124,19 +124,19 @@ jobs:
         platform:
           - runner: macos-15-intel
             target: x86_64
-            pythons: "3.10\n3.11\n3.12\n3.13\n3.14"
+            pythons: "3.10\n3.11\n3.12\n3.13\n3.14\n3.15"
             suffix: ""
           - runner: macos-15-intel
             target: x86_64
-            pythons: "3.14t"
+            pythons: "3.14t\n3.15t"
             suffix: "-freethreaded"
           - runner: macos-latest
             target: aarch64
-            pythons: "3.10\n3.11\n3.12\n3.13\n3.14"
+            pythons: "3.10\n3.11\n3.12\n3.13\n3.14\n3.15"
             suffix: ""
           - runner: macos-latest
             target: aarch64
-            pythons: "3.14t"
+            pythons: "3.14t\n3.15t"
             suffix: "-freethreaded"
     steps:
       - uses: actions/checkout@v6

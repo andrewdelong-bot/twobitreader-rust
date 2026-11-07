@@ -18,6 +18,7 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
   and its `-prefetch` option asks the operating system to page in the needed data first, which
   greatly speeds up a 2bit file that is not already in the page cache.
 - `TwobitReader::try_get_into`, a version of `get_into` that returns an error instead of panicking.
+- Python 3.15 wheels, including free-threaded 3.15t.
 
 ### Changed
 
