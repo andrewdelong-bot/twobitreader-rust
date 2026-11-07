@@ -21,9 +21,9 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
 
 ### Changed
 
-- Dropped support for Python 3.9, which is end-of-life. The Python package now requires CPython 3.10 or newer.
-- Sequence names chr1 to chr22, chrX, chrY and chrM are now looked up without hashing, which is
-  about 2.5 times faster per lookup. Other names still use a hash map.
+- Dropped support for Python 3.9, which is end-of-life.
+- Sequence names chr1-22/X/Y/M are now looked up without hashing, which is ~2.5x faster per lookup.
+  Other names fall back to a hash map as before.
 - Narrowed the version requirements of dependencies from `"0"` to the ranges that were tested, and
   committed `Cargo.lock`.
 
