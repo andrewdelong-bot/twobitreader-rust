@@ -913,11 +913,12 @@ fn read_seqs_endian<B: ByteOrder>(mmap: &Mmap) -> io::Result<Vec<TwobitSequence>
     let mut cursor = Cursor::new(mmap);
     cursor.set_position(size_of::<u32>() as u64);
 
-    // Check the file version
+    // Check the file version. Version 1 differs only in that the index holds 64-bit offsets.
     let version = cursor.read_u32::<B>()?;
-    if version != 0 {
+    if version > 1 {
         return Err(io::Error::new(InvalidData, "file version not recognized."));
     }
+    let offset_bytes = if version == 1 { size_of::<u64>() } else { size_of::<u32>() };
 
     // Read number of sequences and read past the reserved dword.
     let num_seqs = cursor.read_u32::<B>()? as usize;
@@ -925,11 +926,11 @@ fn read_seqs_endian<B: ByteOrder>(mmap: &Mmap) -> io::Result<Vec<TwobitSequence>
 
     // Reject a sequence count the rest of the file cannot possibly contain, before reserving
     // anything for it. Each record occupies at least six bytes here: a one-byte name length,
-    // at least one byte of name, and a four-byte offset. Without this, a corrupt or hostile
+    // at least one byte of name, and an offset. Without this, a corrupt or hostile
     // count of up to u32::MAX would ask the allocator for hundreds of gigabytes.
-    const MIN_BYTES_PER_SEQ: usize = size_of::<u8>() + 1 + size_of::<u32>();
+    let min_bytes_per_seq = size_of::<u8>() + 1 + offset_bytes;
     let remaining_bytes = cursor.get_ref().len() - cursor.position() as usize;
-    if num_seqs > remaining_bytes / MIN_BYTES_PER_SEQ {
+    if num_seqs > remaining_bytes / min_bytes_per_seq {
         return Err(io::Error::new(InvalidData, "sequence count exceeds file size; file may be malformed."));
     }
 
@@ -949,7 +950,7 @@ fn read_seqs_endian<B: ByteOrder>(mmap: &Mmap) -> io::Result<Vec<TwobitSequence>
         };
 
         // Get the offset of the data arrays for this sequence
-        let data_offset = cursor.read_u32::<B>()? as u64;
+        let data_offset = if version == 1 { cursor.read_u64::<B>()? } else { cursor.read_u32::<B>()? as u64 };
         let curr_offset = cursor.position();
         if data_offset < curr_offset {
             return Err(io::Error::new(InvalidData, "invalid data offset; file may be malformed."));
