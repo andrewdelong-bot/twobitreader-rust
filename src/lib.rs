@@ -759,7 +759,7 @@ impl TwobitReader {
             check_start_inclusive(*start, base);
             let start = *start - base;
             assert!(start <= *end, "invalid range (start > end)");
-            ranges_by_seq[*seq_index].push(start..*end);
+            ranges_by_seq[seq_index].push(start..*end);
         }
 
         let mut prefetch = PrefetchBatcher::new(&self.file, &self.mmap);
@@ -854,7 +854,7 @@ impl TwobitReader {
     // since Option<&T> is a bare pointer; callers that must report the failure rather than
     // panic (the Python bindings) use this one.
     fn try_get_seq_data_by_name<N: AsRef<str>>(&self, name: N) -> Option<&TwobitSequenceData> {
-        let index = *self.seq_by_name.get(name.as_ref())?;
+        let index = self.seq_by_name.get(name.as_ref())?;
         Some(self.get_seq_data_by_index(index))
     }
 
