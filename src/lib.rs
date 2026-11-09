@@ -913,7 +913,8 @@ fn read_seqs_endian<B: ByteOrder>(mmap: &Mmap) -> io::Result<Vec<TwobitSequence>
     let mut cursor = Cursor::new(mmap);
     cursor.set_position(size_of::<u32>() as u64);
 
-    // Check the file version. Version 1 differs only in that the index holds 64-bit offsets.
+    // Check the file version: 0 is the usual 32-bit format, and 1 is the 64-bit ("long") format, in which the
+    // index holds 64-bit offsets and nothing else differs.
     let version = cursor.read_u32::<B>()?;
     if version > 1 {
         return Err(io::Error::new(InvalidData, "file version not recognized."));
@@ -933,6 +934,11 @@ fn read_seqs_endian<B: ByteOrder>(mmap: &Mmap) -> io::Result<Vec<TwobitSequence>
     if num_seqs > remaining_bytes / min_bytes_per_seq {
         return Err(io::Error::new(InvalidData, "sequence count exceeds file size; file may be malformed."));
     }
+
+    // A sequence record is at least this long: its length, two block counts and a reserved word, all u32.
+    // So the offset of a record must leave at least that much of the file.
+    const MIN_RECORD_BYTES: u64 = 4 * size_of::<u32>() as u64;
+    let last_data_offset = (mmap.len() as u64).saturating_sub(MIN_RECORD_BYTES);
 
     // Read each sequence header (name, data_offset).
     // (Deliberate choice not to prefetch; a typical 2bit file's header fits in a single page.)
@@ -954,6 +960,10 @@ fn read_seqs_endian<B: ByteOrder>(mmap: &Mmap) -> io::Result<Vec<TwobitSequence>
         let curr_offset = cursor.position();
         if data_offset < curr_offset {
             return Err(io::Error::new(InvalidData, "invalid data offset; file may be malformed."));
+        }
+        // Checked here, once, so that a 64-bit offset cannot be absurdly large when it is added to later.
+        if data_offset > last_data_offset {
+            return Err(io::Error::new(InvalidData, "data offset is past the end of the file; file may be malformed."));
         }
 
         // The block indices and dna_offsets are loaded lazily for each sequence record when first accessed
