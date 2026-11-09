@@ -332,3 +332,64 @@ fn test_try_get_into() {
     assert!(message("seq_abc", 6, 2).contains("seq_abc: invalid range (start 6 > end 2)"));
     assert!(message("seq_abc", 0, 31).contains("seq_abc: end (31) is past the end of the sequence (length 30)"));
 }
+
+// ---- The lookup of sequence names, which has a fast path for short UCSC-style names ----
+//
+// tests/assets/make-name-assets.py writes the files. In each, sequence i has i + 1 bases, so a name that
+// finds the wrong sequence is detected by the length of what it finds.
+
+// Opens a file, and checks that every name in it is found, and finds its own sequence.
+fn open_names(file_name: &str) -> TwobitReader {
+    let tbr = TwobitReader::open(format!("tests/assets/{file_name}")).unwrap();
+    for (i, name) in tbr.names().into_iter().enumerate() {
+        assert!(tbr.contains_name(name), "{name:?}");
+        assert_eq!(tbr.seq_len(name), i + 1, "{name:?}");
+    }
+    tbr
+}
+
+#[test]
+fn test_names_with_and_without_fast_slots() {
+    let tbr = open_names("names-mixed.2bit");
+    assert_eq!(tbr.num_seqs(), 61);
+    // Names that the fast path finds (including the first and last slot of each table, and the names either
+    // side of a change of row in the table of five character names), and names that use the hash map.
+    let present = ["chr1", "chr22", "chr33", "chrX", "chrM", "chr2L", "chr2A", "chrIV", "chr:", "chr@", "chrA"];
+    let present_at_edges = ["chr10", "chr99", "chr1X", "chr1@", "chrX0", "chrXX"];
+    let present_in_hash_map = ["chrIII", "chrXVI", "chr100", "chr01", "chrx", "Chr1", "chr1_KI270706v1_random"];
+    for name in present.into_iter().chain(present_at_edges).chain(present_in_hash_map) {
+        assert!(tbr.contains_name(name), "{name:?}");
+    }
+    // Names that have a slot that no sequence uses, and others that are near misses.
+    let absent =
+        ["chr23", "chr34", "chrY0", "chr3A", "chrB", "chr1Z", "chr0", "chr[", "chr`", "chr1_", "chr2R_", "chrIIII"];
+    let absent_in_hash_map = ["", "chr", "Chr2", "chr100x", "chrEBV", "CM010927.1", "NC_003070.8"];
+    for name in absent.into_iter().chain(absent_in_hash_map) {
+        assert!(!tbr.contains_name(name), "{name:?}");
+    }
+}
+
+#[test]
+fn test_names_that_differ_only_in_a_nul() {
+    // "chr1" and "chr1\0" have different lengths, so they must not share a slot.
+    let tbr = open_names("names-nul.2bit");
+    assert_eq!(tbr.names(), ["chr1", "chr1\0", "chr12", "chr12\0", "chr1\0\0", "chr\0"]);
+    assert!(!tbr.contains_name("chr") && !tbr.contains_name("chr\0\0") && !tbr.contains_name("chr13\0"));
+}
+
+#[test]
+fn test_duplicate_names_are_rejected() {
+    // The duplicate is in the table of five character names, and of four character names. (The hash map is
+    // tested above, in test_malformed_header_error.)
+    for file_name in ["malformed-duplicate-chr12.2bit", "malformed-duplicate-chrX.2bit"] {
+        let r = TwobitReader::open(format!("tests/assets/{file_name}"));
+        assert!(r.is_err() && r.err().unwrap().kind() == io::ErrorKind::InvalidData, "{file_name}");
+    }
+}
+
+#[test]
+fn test_no_names() {
+    let tbr = open_names("no-sequences.2bit");
+    assert_eq!(tbr.num_seqs(), 0);
+    assert!(!tbr.contains_name("chr1") && !tbr.contains_name("chr12") && !tbr.contains_name("seq"));
+}
