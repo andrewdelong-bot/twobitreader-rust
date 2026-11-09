@@ -9,6 +9,10 @@ The motivation for this package is speed. See the underlying [`twobitreader`](ht
 pip install twobitreader-rs
 ```
 
+A command-line tool, a drop-in replacement for the core features of UCSC `twoBitToFa`, is available from
+[conda-forge](https://anaconda.org/conda-forge/twobitreader-cli) as `twobitreader-cli`
+(`conda install -c conda-forge twobitreader-cli`, or `pixi add twobitreader-cli`).
+
 ## Usage
 
 ```python

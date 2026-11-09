@@ -19,6 +19,7 @@ twobitreader - convert all or part of a .2bit file to FASTA (compatible with two
 usage:
    twobitreader [options] input.2bit output.fa
 Use 'stdout' as output.fa to write to standard output.
+The input can be a 32-bit or 64-bit .2bit file.
 options:
    -seq=name       Restrict output to this sequence. May be name:start-end.
    -start=N        Start at this position in the sequence (zero-based). Requires -seq.

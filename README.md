@@ -89,6 +89,13 @@ twobitreader -seq=chr1 -start=10000 -end=10005 hg38.2bit stdout
 twobitreader -bed=exons.bed -threads=16 hg38.2bit out.fa
 ```
 
+It reads both 32-bit and 64-bit 2bit files. It can also be installed from
+[conda-forge](https://anaconda.org/conda-forge/twobitreader-cli), without a Rust toolchain:
+```console
+conda install -c conda-forge twobitreader-cli
+pixi add twobitreader-cli
+```
+
 ## Benchmarks
 
 Two tasks were benchmarked:
