@@ -79,22 +79,7 @@ tbr.prefetch(&exons);             // Ask the operating system to start paging th
 let seqs = tbr.get_batch(&exons); // Access the memory as it arrives.
 ```
 
-## Command line
-
-The `cli` feature builds a `twobitreader` command that is a drop-in replacement for the core features
-of UCSC `twoBitToFa`:
-```console
-cargo install twobitreader --features cli
-twobitreader -seq=chr1 -start=10000 -end=10005 hg38.2bit stdout
-twobitreader -bed=exons.bed -threads=16 hg38.2bit out.fa
-```
-
-It reads both 32-bit and 64-bit 2bit files. It can also be installed from
-[conda-forge](https://anaconda.org/conda-forge/twobitreader-cli), without a Rust toolchain:
-```console
-conda install -c conda-forge twobitreader-cli
-pixi add twobitreader-cli
-```
+<!-- cargo-rdme end -->
 
 ## Benchmarks
 
@@ -146,13 +131,12 @@ Entries marked * were run in free-threaded Python.
 
 ## Use of AI
 
-The Rust library was written primarily by hand.
-
-Claude was used to write the CLI and its tests+benchmark, to generated the OS-specific
-prefetch loops, to improve handling of corrupt or malicious files, to document the
-Python bindings and to write their tests+benchmark, to improved error checking
-and propagation to Python more broadly, and to generated the CI configurations.
-
-<!-- cargo-rdme end -->
+The Rust library was written primarily by hand, but Claude was used to make major improvements:
+* to write the CLI and its tests+benchmark;
+* to generated the OS-specific prefetch loops;
+* to improve handling of corrupt or malicious files;
+* to document the Python bindings and to mirror the Rust tests+benchmark;
+* to improved error checking and propagation to Python more broadly;
+* to generated the CI configurations.
 
 License: MIT OR Apache-2.0
