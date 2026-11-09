@@ -8,6 +8,12 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
 
 ## [Unreleased]
 
+### Changed
+
+- Sequence names of up to two characters after "chr", such as chr1 to chr99, chrX, chrM, chr2L and chrIV,
+  are now looked up in a small array instead of being hashed, which is several times faster (e.g., 5 ns
+  instead of 24 ns). Longer names still use the hash map.
+
 ## [0.3.0] - 2026-11-06
 
 ### Added
