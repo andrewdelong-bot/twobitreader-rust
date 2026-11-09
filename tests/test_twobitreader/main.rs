@@ -189,6 +189,54 @@ fn test_tiny_bigend_masked() -> Result<(), Box<dyn Error>> {
     test_tiny("tests/assets/tiny-bigend.2bit", true)
 }
 
+// The 64-bit ("long") format has 64-bit offsets in the index, and is otherwise the same. The files in
+// tests/assets/64bit have the names of their 32-bit counterparts, and are written by make-64bit-assets.py.
+#[test]
+fn test_tiny_lilend_64bit() -> Result<(), Box<dyn Error>> {
+    test_tiny("tests/assets/64bit/tiny-lilend.2bit", false)
+}
+
+#[test]
+fn test_tiny_lilend_64bit_masked() -> Result<(), Box<dyn Error>> {
+    test_tiny("tests/assets/64bit/tiny-lilend.2bit", true)
+}
+
+#[test]
+fn test_tiny_bigend_64bit() -> Result<(), Box<dyn Error>> {
+    test_tiny("tests/assets/64bit/tiny-bigend.2bit", false)
+}
+
+#[test]
+fn test_tiny_bigend_64bit_masked() -> Result<(), Box<dyn Error>> {
+    test_tiny("tests/assets/64bit/tiny-bigend.2bit", true)
+}
+
+#[test]
+fn test_malformed_64bit_error() {
+    // The first sequence's offset is not within the file: absurdly large, past the end, or too near the end for
+    // the sequence record's four header words. Each is rejected when the file is opened, not when it is read.
+    for file in ["malformed-offset-huge", "malformed-offset-past-end", "malformed-offset-near-end"] {
+        let r = TwobitReader::open(format!("tests/assets/64bit/{file}.2bit"));
+        let e = r.err().unwrap_or_else(|| panic!("{file} was opened"));
+        assert_eq!(e.kind(), io::ErrorKind::InvalidData, "{file}");
+        assert!(e.to_string().contains("past the end of the file"), "{file}: {e}");
+    }
+
+    // The file claims 4 sequences, which would fit in the bytes after the header if their offsets were 4 bytes
+    // long, but they are 8 bytes long.
+    let e = TwobitReader::open("tests/assets/64bit/malformed-count.2bit").err().unwrap();
+    assert_eq!(e.kind(), io::ErrorKind::InvalidData);
+    assert!(e.to_string().contains("sequence count exceeds file size"), "{e}");
+}
+
+#[test]
+fn test_malformed_unknown_format_error() {
+    // The header says the file is in a format that is neither the 32-bit one nor the 64-bit one.
+    let e = TwobitReader::open("tests/assets/malformed-unknown-format.2bit").err().unwrap();
+    assert_eq!(e.kind(), io::ErrorKind::InvalidData);
+    assert!(e.to_string().contains("version not recognized"), "{e}");
+}
+
 #[test]
 #[should_panic(expected = "invalid start")]
 fn test_get_inclusive_invalid_start_panic() {
