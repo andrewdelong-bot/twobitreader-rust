@@ -8,6 +8,16 @@ crate `twobitreader` and the Python package `twobitreader-rs` share a version nu
 
 ## [Unreleased]
 
+### Added
+
+- Reading of 64-bit ("long") 2bit files, which `faToTwoBit -long` writes for genomes too large for 32-bit
+  offsets (over 4 GiB). `TwobitReader` and the `twobitreader` command read them with no option.
+
+### Changed
+
+- `TwobitReader::open` returns an error for a sequence whose data offset is past the end of the file, instead
+  of panicking later, when the sequence is read.
+
 ## [0.3.0] - 2026-11-06
 
 ### Added
